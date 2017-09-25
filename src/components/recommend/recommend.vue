@@ -1,62 +1,146 @@
 <template>
-  <div>
-    <p ref="name">姓名：{{user.name}}</p>
-    <p>年龄：{{user.age}}</p>
-    <!-- <ul>
-      <li v-for="item in list" :key="item.id">
-        <span>{{item.name}}</span>
-        <span>{{item.age}}</span>
-        <span>{{item.hobby}}</span>
-      </li>
-    </ul> -->
-    <!-- <m-header></m-header> -->
-  </div>  
+  <div class="recommend" ref="recommend">
+    <scroll ref="scroll" class="recommend-content" :data="discList">
+      <div>
+        <div class="slider-wrapper" v-if="recommends.length" ref="sliderWrapper">
+          <slider>
+            <div v-for="(item,index) in recommends" :key="index">
+              <a :href="item.linkUrl">
+                <img :src="item.picUrl" alt="" class="needsclick" @load="loadImage">
+              </a>
+            </div>
+          </slider>
+        </div>
+        <div class="recommend-list">
+          <h1 class="list-title">热门歌单推荐</h1>
+          <ul>
+            <li v-for="(item,index) in discList" :key="index" class="item">
+              <div class="icon">
+                <img v-lazy="item.imgurl" width="60" height="60">
+              </div>
+              <div class="text">
+                <h2 class="name" v-html="item.creator.name"></h2>
+                <p class="desc" v-html="item.dissname"></p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="loading-conteainer" v-show="!discList.length">
+        <loading> </loading>
+      </div>
+    </scroll>
+  </div>
 </template>
 <script>
-// import MHeader from 'components/m-header/m-header'
+import Loading from 'base/loading/loading'
+import Slider from 'base/slider/slider'
+import Scroll from 'base/scroll/scroll'
+import { getRecommend, getDiscList } from 'api/recommend'
+import { ERR_OK } from 'api/config'
 export default {
   components: {
-    // MHeader
+    Slider,
+    Scroll,
+    Loading
   },
   data() {
     return {
-      user: {},
-      list: []
+      recommends: [],
+      discList: []
     }
   },
   created() {
-    const data = {
-      name: 'Timokie',
-      age: 18
+    this._getRecommend()
+    this._getDiscList()
+  },
+  methods: {
+    _getRecommend() {
+      getRecommend().then((res) => {
+        if (res.code === ERR_OK) {
+          console.log(res.data.slider)
+          this.recommends = res.data.slider
+        }
+      })
+    },
+    _getDiscList() {
+      getDiscList().then((res) => {
+        if (res.code === ERR_OK) {
+          this.discList = res.data.list
+        }
+      })
+    },
+    loadImage() {
+      if (!this.checkloaded) {
+        this.checkloaded = true
+        this.$refs.scroll.refresh()
+      }
     }
-    this.$data.user = data
-    const dataList = [{
-      id: 1,
-      name: '宗元',
-      age: 30,
-      hobby: '王者荣耀'
-    }, {
-      id: 2,
-      name: '章磊',
-      age: 32,
-      hobby: '打麻将'
-    }, {
-      id: 3,
-      name: '陈小静',
-      age: 33,
-      hobby: '送人头'
-    }]
-    this.list = dataList
-    // let dom = this.$refs.name
-    // console.log(dom)
   },
   mounted() {
-    // let dom = this.$refs.name
-    // console.log(dom)
   }
 }
 </script>
 <style lang="scss">
+@import '~common/style/variable';
+// @import '~common/style/index.scss';
+.recommend {
+  position: fixed;
+  width: 100%;
+  top: 88px;
+  bottom: 0;
+  .recommend-content{
+    height: 100%;
+    overflow: hidden;
+    .slider-wrapper {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+    }
+    .recommend-list {
+      .list-title {
+        height: 65px;
+        line-height: 65px;
+        text-align: center;
+        font-size: $font-size-medium;
+        color: $color-theme;
+      }
+      .item {
+        display: flex;
+        box-sizing: border-box;
+        align-items: center;
+        padding: 0 20px 20px 20px;
+        .icon {
+          flex: 0 0 60px;
+          width: 60px;
+          padding-right: 20px;
+        }
+        .text {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          flex: 1;
+          line-height: 20px;
+          overflow: hidden;
+          font-size: $font-size-medium;
+          .name {
+            margin-bottom: 10px;
+            color: $color-text;
+          }
+          .desc {
+            color: $color-text;
+          }
+        }
+      }
+    }
+  }
+  
+  .loading-conteainer{
+    position: absolute;
+    width: 100%;
+    height: 50%;
+    top: 50%;
 
+  }
+}
 </style>
-
